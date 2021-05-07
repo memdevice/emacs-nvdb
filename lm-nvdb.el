@@ -1,16 +1,18 @@
-;;;; 7234-nvdb.el -- show uncommon words in Italian (FO, AU, AD)
+;;;; 7234-nvdb-regexp.el -- show uncommon words in Italian, with flection, using regular expression
 
-;;;; 2021 - 04 - 22 
+;;;; 2021-04-22
 
-;; Versione 1:
+;; Versione 1.2:
 
-;; mostra nel buffer le parole non appartenenti al lessico di base (NVdB), evidenziandole, ma senza riconoscerne le forme flesse o distinguere gli omografi
+;; mostra nel buffer le parole non appartenenti al lessico di base (NVdB), evidenziandole, riconoscendone la flessione grammaticale, mediante l'uso di regular expression apllicate al lemma
 
 ;; la nuova lista usata qui è quella che, finalmente, separa i tre gruppi (FO, AU, AD) basandosi sul grassetto, corsivo e tondo - rispettivamente.
 
-;; in questo caso ci sono 7243 voci, con ripetizioni di omografi (e.g. "a" che in FO è la preposizione e in AU è la lettera - credo). La cosa è qui voluta perché questa è la versione che porta a quella con capacità di lemmatizzazione inversa (riconoscimento di forme flesse) e quindi ciascuno omografo è il capo di un un gruppo di flessioni, potenzialmente diverse.
+;;LM: riscrivere in funzione dei cambiamenti apportati agli omografi [in questo caso ci sono 7243 voci, con ripetizioni di omografi (e.g. "a" che in FO è la preposizione e in AU è la lettera - credo). La cosa è qui voluta perché questa è la versione che porta a quella con capacità di lemmatizzazione inversa (riconoscimento di forme flesse) e quindi ciascuno omografo è il capo di un un gruppo di flessioni, potenzialmente diverse.]
 
-;; contandole con esattezza (i.e. togliendo l'ultimo a-capo) le voci sono in numero di: 2001, 2231, 3011 - rispettivamente.
+;; La lista che qui si pubblica include le circa duemila parole fondamentali, stampate in neretto tondo, le circa tremila parole di alto uso stampate in tondo chiaro, e le parole di alta disponibilità stampate in corsivo chiaro. Queste ultime, circa 2.500, sono state ricavate partendo dalla lista di 2.300 parole di alta disponibilità del vecchio VdB e sottoponendola a gruppi di studenti e studentesse universitari per eliminare le parole non più avvertite come di maggior uso e per accogliere invece nuove parole avvertite come di alta disponibilità.
+
+;; [contandole con esattezza (i.e. togliendo l'ultimo a-capo) le voci sono in numero di: 2001, 2231, 3011 - rispettivamente.]
 
 ;;  $ wc -l *quoted*
 ;;  2001 nvbd-FO-2001-quoted-list.txt
@@ -24,6 +26,8 @@
 ;; E' il caricamento nelle variabili di regular expression che mostra anche gli indici iniziali e finali.
 
 ;; Copyright (C) 2021  Luca Missori <mem.device@gmail.com>
+
+;;;; Code:
 
 ;; -- TESTO ITALIANO DI PROVA: TEST --
 
@@ -41,14 +45,30 @@
 ;; marcatori: FO da "a" a "zona"; AU da "a" a "zuppa"; AD da "abbandonato" a "zucchero"
 ;; ma passando per: lama, leggenda, porco, vocale e vocazione,
 
+;; regexp: pazzo, pezzo, pizzo, puzzo, pozzo | pazzi, pezzi, pizzi, pozzi, puzzi!
 
-;;;; Code:
+;; G. Varaldo - OTTAVE
+
+;; Ottava FO (non è vero... )
+
+;; Un giovanotto ha scelto come moglie
+;; una ragazza umile, ma pura,
+;; che tuttavia pur suscita le voglie
+;; di un nobile e potente addirittura.
+;; Fuggon: ma nel convento che l'accoglie
+;; lei non parrà comunque più sicura,
+;; mentre in città l'onesto fidanzato
+;; ben rischierà di essere arrestato".
+
+;; Ottava CO
+;; Vediamo una seconda ottava: è l'"Ottava CO" (comune): "Lo svela un ecclesiastico anzianotto / alla colf intrigante, ma sfrontata /  -  lei una pepia, lui un cacasotto  - : / l'arroganza davvero ineguagliata / di un abietto e borioso signorotto / impossibìlita, pur agognata, / a una coppietta non occasionale / la concretizzazione coniugale".
+
+;; Ottava TS
+;; La terza è l'"Ottava TS" (tecnico-specialistica):  "Il poco avventurista fiduciario /di una circumlacuale curazìa / e l'egotista plenipotenziario / poi defedato dalla pandemia, / ma pure il presule e l'obbedienziario, / tra i deuteragonisti. Tuttavia / sull'avanscena come primattore / non un atride, bensì un filatore".
 
 
 ;; LM: modificato - oppure carica solo cl-macs
 (require 'cl-lib)
-
-
 
 (defvar 7243-most-frequent-words
   '("a"
@@ -7294,10 +7314,9 @@
 "zampa"
 "zucca"
 "zucchero"
-"lmstopwordlm")
-  "Words listed by alphabetic order: the first 7000+ most basic words from the NVdB by T. De Mauro (XXXXXXXXX  words).
-Taken from this website:
-https://www.dropbox.com/s/mkcyo53m15ktbnp/nuovovocabolariodibase.pdf")
+"lmfecitstopword")
+  "Words listed by alphabetic order: the first 7000+ most basic words from the NVdB (NNNNNNNNNN words).
+Taken from this website: https://www.internazionale.it/opinione/tullio-de-mauro/2016/12/23/il-nuovo-vocabolario-di-base-della-lingua-italiana")
 
 ;; Quindi FO = 2001; FO+AU = 4232; FO+AU+AD = 7243 = NVdB!
 
@@ -7365,4 +7384,4 @@ The words used are in `7243-most-frequent-words'."
 
 (provide '7243-nvdb)
 
-;;; 7243-parole.el ends here
+;;; 7243-nvdb-regexp.el ends here
