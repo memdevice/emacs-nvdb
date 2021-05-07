@@ -1,38 +1,32 @@
-;;; 7000-parole.el -- show uncommon words in Italian (according NVdB by T. De Mauro)
+;;; 7179-parole.el -- show uncommon words in Italian (according NVdB by T. De Mauro)
+;;; 2021 - 04 - 16
 
-;;; LM 2021-04-14 -- riprovo a modificare il file senza toccare la codifica (attualmente né U né 1 ma '-')
+;; Versione 0:
 
-;;
+;; mostra nel buffer le parole non appartenenti al lessico di base (NVdB), evidenziandole, ma senza riconoscerne le forme flesse o distinguere gli omografi
+
+;; la lista di parole utilizzate è quella complessiva del NVdB (FO+AU+AD), sommando le quali ed eliminando gli omografi  si ottiene un insieme di 7179 parole
+;; nota: considerando anche gli omografi la lista ammonta invece a 7246 parole
+
 ;; Copyright (C) 2021  Luca Missori <mem.device@gmail.com>
-;;
-;; This program is free software: you can redistribute it and/or modify it under
-;; the terms of the GNU General Public License as published by the Free Software
-;; Foundation, either version 3 of the License, or (at your option) any later
-;; version.
-;;
-;; This program is distributed in the hope that it will be useful, but WITHOUT
-;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-;; FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-;; details.
-;;
-;; You should have received a copy of the GNU General Public License along with
-;; GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Code:
 
-;; -- TESTO TEST ITALIANO --
+;; -- TESTO ITALIANO DI PROVA: TEST --
 ;; Bisogna abbagliare e abbaiare e poi abbandonare, abbeverare abbondante
 ;; abbronzare, abete, abbandono; babbo, blu, bottone
 ;; cosa, casa, chiusa, cisa, ciano, dono, duro a bestia
 ;; fare, famigliare, familiare, famiglia, familia
-;; mercato politica hapax legomena Dante dato
-;; e il purè ed il pure, il sino ed il seno, vendemmiare, web e wafer - poi se vedo, sto zitto!
+;; mercato, oliva, palla, sexy, ping-pong,
+;; politica. Hapax legomena e Dante un dato
+;; e il purè ed il pure, il sino ed il seno, vendemmiare, web e wafer - poi se vedo, sto zitto e mi pappo la zuppa!
 ;; ed in omaggio ad AA il peperone
+;; marcatori: 2400 è fino ad EVITARE (segue evocare), 4800 è fino a PRATO (segue precario).
 
 ;; LM: modificato - oppure carica solo cl-macs
 (require 'cl-lib)
 
-(defvar 7000-most-frequent-words
+(defvar 7179-most-frequent-words
   '("a"
 "abbagliante"
 "abbaiare"
@@ -7216,133 +7210,62 @@
 Taken from this website:
 http://www.internazionale.it/aaaa/bbbb/ppppp.pdf")
 
-(defvar 1000-words-regexp
-  (regexp-opt
-   (cl-loop for i from 0 to 999
-	 collect (nth i 7000-most-frequent-words))
-   'words)
-  "Regular expression matching the 1000 most frequent words
-based on `2000-most-frequent-words'.")
+;;;; LM: bisogna salire a 2430 parole a blocco, per poter gestire anche gli omografi
 
-(defvar 2000-words-regexp
+(defvar 2400-words-regexp
   (regexp-opt
-   (cl-loop for i from 1000 to 1999
-	 collect (nth i 7000-most-frequent-words))
+   (cl-loop for i from 0 to 2399
+	 collect (nth i 7179-most-frequent-words))
    'words)
-  "Regular expression matching the second thousand most frequent words
-based on `2000-most-frequent-words'.")
+  "Regular expression matching the first 2400 most frequent words
+based on `7179-most-frequent-words'.")
 
-(defvar 3000-words-regexp
+(defvar 4800-words-regexp
   (regexp-opt
-   (cl-loop for i from 2000 to 2999
-	 collect (nth i 7000-most-frequent-words))
+   (cl-loop for i from 2400 to 4799
+	 collect (nth i 7179-most-frequent-words))
    'words)
-  "Regular expression matching the second thousand most frequent words
-based on `3000-most-frequent-words'.")
+  "Regular expression matching the first 4800 most frequent words
+based on `7179-most-frequent-words'.")
 
-(defvar 5000-words-regexp
-  (regexp-opt
-   (cl-loop for i from 2999 to 4999
-	 collect (nth i 7000-most-frequent-words))
-   'words)
-  "Regular expression matching the second thousand most frequent words
-based on `5000-most-frequent-words'.")
-
-(defvar 6000-words-regexp
-  (regexp-opt
-   (cl-loop for i from 4999 to 5999
-	 collect (nth i 7000-most-frequent-words))
-   'words)
-  "Regular expression matching the second thousand most frequent words
-based on `6000-most-frequent-words'.")
-
-(defvar 7000-words-regexp
-  (regexp-opt
-   (cl-loop for i from 5999 to 6999
-	 collect (nth i 7000-most-frequent-words))
-   'words)
-  "Regular expression matching the second thousand most frequent words
-based on `7000-most-frequent-words'.")
 
 (defvar 7179-words-regexp
   (regexp-opt
-   (cl-loop for i from 6999 to 7178
-	 collect (nth i 7000-most-frequent-words))
+   (cl-loop for i from 4800 to 7178
+	 collect (nth i 7179-most-frequent-words))
    'words)
-  "Regular expression matching the second thousand most frequent words
+  "Regular expression matching the remaining  most frequent words
 based on `7179-most-frequent-words'.")
 
-(define-derived-mode 7179-words-mode text-mode "7179"
+;; LM: nota arrivando a 4999 smette di funzionare, a 4499 invece funziona
+;; LM: ho risolto spezzando in tre liste da 2400 parole l'una,
+;; tanto dovrà probabilmente cambiare tutto
+
+(define-derived-mode 7179-words-mode text-mode "FO-AU-AD"
   "Major mode for writing text limited to the most common words.
 The words used are in `7179-most-frequent-words'."
-  (font-lock-add-keywords nil `((,1000-words-regexp . 'default)
-				(,2000-words-regexp . 'default)
-				(,3000-words-regexp . 'default)
-   				(,5000-words-regexp . 'default)
-   				(,6000-words-regexp . 'default)
-   				(,7000-words-regexp . 'default)
-   				(,7179-words-regexp . 'default)
+  (font-lock-add-keywords nil `((,2400-words-regexp . 'scroll-bar)
+   				(,4800-words-regexp . 'scroll-bar)
+                (,7179-words-regexp . 'shadow)
 				("\\w+" . 'error)))
   (setq font-lock-keywords-case-fold-search t))
 
-(define-derived-mode 7000-words-mode text-mode "7000"
+(define-derived-mode 4800-words-mode text-mode "FO-AU"
   "Major mode for writing text limited to the most common words.
-The words used are in `7000-most-frequent-words'."
-  (font-lock-add-keywords nil `((,1000-words-regexp . 'default)
-				(,2000-words-regexp . 'default)
-				(,3000-words-regexp . 'default)
-   				(,5000-words-regexp . 'default)
-   				(,6000-words-regexp . 'default)
-   				(,7000-words-regexp . 'default)
-				("\\w+" . 'error)))
+The words used are in `4800-most-frequent-words'."
+  (font-lock-add-keywords nil `((,2400-words-regexp . 'scroll-bar)
+   				(,4800-words-regexp . 'shadow)
+				("\\w+" . 'bold)))
   (setq font-lock-keywords-case-fold-search t))
 
-
-(define-derived-mode 6000-words-mode text-mode "6000"
+(define-derived-mode 2400-words-mode text-mode "FO"
   "Major mode for writing text limited to the most common words.
-The words used are in `6000-most-frequent-words'."
-  (font-lock-add-keywords nil `((,1000-words-regexp . 'default)
-				(,2000-words-regexp . 'default)
-				(,3000-words-regexp . 'default)
-   				(,5000-words-regexp . 'default)
-   				(,6000-words-regexp . 'default)
-				("\\w+" . 'error)))
+The words used are in `2400-most-frequent-words'."
+  (font-lock-add-keywords nil `((,2400-words-regexp . 'shadow)
+				("\\w+" . 'bold)))
   (setq font-lock-keywords-case-fold-search t))
 
-(define-derived-mode 5000-words-mode text-mode "5000"
-  "Major mode for writing text limited to the most common words.
-The words used are in `5000-most-frequent-words'."
-  (font-lock-add-keywords nil `((,1000-words-regexp . 'default)
-				(,2000-words-regexp . 'default)
-				(,3000-words-regexp . 'default)
-   				(,5000-words-regexp . 'default)
-				("\\w+" . 'error)))
-  (setq font-lock-keywords-case-fold-search t))
+(provide '7179-parole)
 
-(define-derived-mode 3000-words-mode text-mode "3000"
-  "Major mode for writing text limited to the most common words.
-The words used are in `3000-most-frequent-words'."
-  (font-lock-add-keywords nil `((,1000-words-regexp . 'default)
-				(,2000-words-regexp . 'default)
-				(,3000-words-regexp . 'default)
-				("\\w+" . 'error)))
-  (setq font-lock-keywords-case-fold-search t))
+;;; 7179-parole.el ends here
 
-(define-derived-mode 2000-words-mode text-mode "2000"
-  "Major mode for writing text limited to the most common words.
-The words used are in `2000-most-frequent-words'."
-  (font-lock-add-keywords nil `((,1000-words-regexp . 'default)
-				(,2000-words-regexp . 'default)
-				("\\w+" . 'error)))
-  (setq font-lock-keywords-case-fold-search t))
-
-(define-derived-mode 1000-words-mode text-mode "1000"
-  "Major mode for writing text limited to the most common words.
-The words used are in `1000-most-frequent-words'."
-  (font-lock-add-keywords nil `((,1000-words-regexp . 'default)
-				("\\w+" . 'error)))
-  (setq font-lock-keywords-case-fold-search t))
-
-(provide '7000-parole)
-
-;;; 7000-parole.el ends here
